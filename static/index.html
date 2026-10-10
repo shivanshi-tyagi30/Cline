@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" />
   <link rel="stylesheet" href="/style.css?v=13" />
-  <link rel="stylesheet" href="/night.css?v=3" />
+  <link rel="stylesheet" href="/night.css?v=4" />
 </head>
 <body>
 
@@ -100,7 +100,7 @@
             <div class="step-bar-seg" id="sbar2"></div>
             <div class="step-bar-seg" id="sbar3"></div>
           </div>
-          <p class="step-label" id="stepCaption">Pick a start and an end on the map, or choose a demo route below.</p>
+          <p class="step-label" id="stepCaption">Search a place or tap the map to set where you start and where you are going.</p>
         </div>
 
         <!-- Connected FROM / TO Box with Live Autocomplete -->
@@ -156,13 +156,6 @@
             </span>
             <p id="placingText">Tap the map to set your <strong>source</strong></p>
           </div>
-        </div>
-
-        <div class="demo-wrap" id="demoWrap" hidden>
-          <label class="demo-label" for="demoSelect">Demo routes</label>
-          <select id="demoSelect" class="demo-select">
-            <option value="">Choose a demo route</option>
-          </select>
         </div>
 
         <!-- Departure Time & Extra Time Card -->
@@ -254,7 +247,7 @@
   <div id="drawer" class="inspector-modal" hidden></div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="/map.js?v=13"></script>
+  <script src="/map.js?v=14"></script>
   <script src="/report.js?v=10"></script>
 </body>
 </html>

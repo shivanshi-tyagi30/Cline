@@ -63,7 +63,7 @@ async function searchPlaces(q) {
 }
 
 /* Initialize Leaflet Map */
-const map = L.map("map", { zoomControl: true }).setView([26.1895, 91.6965], 15);
+const map = L.map("map", { zoomControl: true, zoomSnap: 0.25, zoomDelta: 0.5, wheelPxPerZoomLevel: 120, inertia: true, inertiaDeceleration: 2400, fadeAnimation: true, zoomAnimation: true, markerZoomAnimation: true }).setView([26.1895, 91.6965], 15);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   maxZoom: 19
@@ -243,7 +243,7 @@ function syncUIState() {
   $("sbar3").className = "step-bar-seg " + (step === 3 ? "done" : "");
 
   if (step === 1) {
-    $("stepCaption").textContent = "Pick a start and an end on the map, or choose a demo route below.";
+    $("stepCaption").textContent = "Search a place or tap the map to set where you start and where you are going.";
   } else if (step === 2) {
     $("stepCaption").textContent = "Now pick where you are going.";
   } else {
@@ -654,7 +654,7 @@ function renderCards() {
   }
 
   if (boundsPts.length) {
-    map.fitBounds(boundsPts, { paddingTopLeft: [60, 60], paddingBottomRight: [60, 240], maxZoom: 16 });
+    map.flyToBounds(boundsPts, { paddingTopLeft: [60, 60], paddingBottomRight: [60, 240], maxZoom: 16, duration: 1.1, easeLinearity: 0.2 });
   }
 }
 
@@ -750,36 +750,6 @@ $("detour").onchange = () => {
   if (start && end && lastRes) findRoutes();
 };
 
-async function setupDemoPicker() {
-  let pairs = [];
-  try {
-    const r = await fetch("/api/demo_pairs");
-    if (r.ok) pairs = (await r.json()).pairs || [];
-  } catch (_) { pairs = []; }
-  if (!pairs.length) { $("demoWrap").hidden = true; return; }
-  const fmt = (m) => (m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${Math.round(m)} m`);
-  $("demoSelect").innerHTML = `<option value="">Choose a demo route</option>` + pairs.map((p, i) =>
-    `<option value="${i}">${p.label}: longest dark stretch ${fmt(p.fastest_longest_stretch_m)} on the fastest route</option>`).join("");
-  $("demoWrap").hidden = false;
-  $("demoSelect").onchange = () => {
-    const v = $("demoSelect").value;
-    if (v === "") return;
-    const p = pairs[+v];
-    start = { lat: p.start[0], lng: p.start[1], label: `${p.label}: start` };
-    end = { lat: p.end[0], lng: p.end[1], label: `${p.label}: end` };
-    $("fromInput").value = start.label;
-    $("toInput").value = end.label;
-    $("hour").value = hh(p.hour, 0);
-    if ($("hourv")) $("hourv").textContent = hh(p.hour, 0);
-    placing = null;
-    syncMarkers();
-    syncUIState();
-    map.fitBounds([p.start, p.end], { padding: [80, 80], maxZoom: 16 });
-    loadNetwork();
-    findRoutes();
-  };
-}
-
 $("go").onclick = findRoutes;
 $("reset").onclick = () => {
   start = end = lastRes = null;
@@ -798,7 +768,6 @@ $("reset").onclick = () => {
   setupAutocomplete($("fromInput"), $("fromDropdown"), $("fromList"), true);
   setupAutocomplete($("toInput"), $("toDropdown"), $("toList"), false);
   renderRecent();
-  setupDemoPicker();
 
   $("profileLabel").textContent = "Driving routes";
   placing = "source";
