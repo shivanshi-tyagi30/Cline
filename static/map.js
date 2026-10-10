@@ -19,8 +19,8 @@ const MODE_CONFIG = {
   },
   calmest: {
     id: "calmest",
-    label: "Calmest",
-    color: "#0C8599",
+    label: "Safest",
+    color: "#1E8E3E",
     bg: "#E6F4EA",
     textColor: "#145A2B",
     icon: (active) => `<svg width="16" height="16" viewBox="0 0 24 24" fill="${active ? "#fff" : "#145A2B"}"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>`
@@ -238,16 +238,18 @@ function syncUIState() {
   $("fromInput").classList.toggle("active", placing === "source");
   $("toInput").classList.toggle("active", placing === "destination");
 
-  $("sbar1").className = "step-bar-seg " + (step > 1 ? "done" : "current");
-  $("sbar2").className = "step-bar-seg " + (step > 2 ? "done" : step === 2 ? "current" : "");
-  $("sbar3").className = "step-bar-seg " + (step === 3 ? "done" : "");
+  if ($("sbar1")) $("sbar1").className = "step-bar-seg " + (step > 1 ? "done" : "current");
+  if ($("sbar2")) $("sbar2").className = "step-bar-seg " + (step > 2 ? "done" : step === 2 ? "current" : "");
+  if ($("sbar3")) $("sbar3").className = "step-bar-seg " + (step === 3 ? "done" : "");
 
-  if (step === 1) {
-    $("stepCaption").textContent = "Search a place or tap the map to set where you start and where you are going.";
-  } else if (step === 2) {
-    $("stepCaption").textContent = "Now pick where you are going.";
-  } else {
-    $("stepCaption").textContent = "Ready. Find routes to compare how long each one stays in the dark.";
+  if ($("stepCaption")) {
+    if (step === 1) {
+      $("stepCaption").innerHTML = `<strong>Step 1</strong> of 3 &mdash; Set your starting point`;
+    } else if (step === 2) {
+      $("stepCaption").innerHTML = `<strong>Step 2</strong> of 3 &mdash; Choose your destination`;
+    } else {
+      $("stepCaption").innerHTML = `<strong>Step 3</strong> of 3 &mdash; Search your route`;
+    }
   }
 
   if (placing && !hasRoutes) {
@@ -263,7 +265,7 @@ function syncUIState() {
   $("goLabel").textContent = hasRoutes ? "Update routes" : "Find routes";
 
   $("sidebar").className = hasRoutes ? "docked-mode" : "floating-mode";
-  $("stepSection").hidden = hasRoutes;
+  if ($("stepSection")) $("stepSection").hidden = hasRoutes;
   $("timeBudgetWrap").hidden = false;
   $("sidebarFooter").hidden = hasRoutes;
   $("recentPanel").hidden = hasRoutes;
@@ -494,10 +496,21 @@ function renderCards() {
   sel = active;
   syncUIState();
 
+  const fmtModes = (c) => {
+    const order = ["fastest", "balanced", "calmest"];
+    const raw = [c.name, ...(c.also || [])];
+    const sorted = [...raw].sort((a, b) => order.indexOf(a) - order.indexOf(b));
+    const labels = sorted.map((n) => MODE_CONFIG[n]?.label || n);
+    if (labels.length > 2) {
+      return `${labels.slice(0, -1).join(", ")} & ${labels[labels.length - 1]}`;
+    }
+    return labels.join(" & ");
+  };
+
   $("modePillsRow").innerHTML = res.cards.map((c) => {
     const m = MODE_CONFIG[c.name] || MODE_CONFIG.calmest;
     const isSel = c.name === active;
-    const title = c.also && c.also.length ? `${m.label} & ${c.also.map((a) => MODE_CONFIG[a]?.label || a).join(" & ")}` : m.label;
+    const title = fmtModes(c);
     return `<button class="route-mode-pill" data-m="${c.name}" style="border-color:${isSel ? m.color : "#DDD5C8"};background:${isSel ? m.color : "#fff"};color:${isSel ? "#fff" : m.textColor};box-shadow:${isSel ? `0 3px 10px ${m.color}40` : "none"}">
       ${m.icon(isSel)} <span>${title}</span>
     </button>`;
@@ -512,118 +525,90 @@ function renderCards() {
 
   const cur = selCard;
   const fast = res.cards.find((c) => hasName(c, "fastest")) || selCard;
+  const m = MODE_CONFIG[cur.name] || MODE_CONFIG.calmest;
 
-  const dd = lastRes.distances || {};
-  const access = Math.round((dd.start_to_road_m || 0) + (dd.end_to_road_m || 0));
-  const distSub = dd.straight_line_m != null
-    ? `Along campus roads \u00b7 ${(dd.straight_line_m / 1000).toFixed(2)} km straight line` + (access >= 20 ? ` \u00b7 +${access} m to/from the road` : "")
-    : "Along campus roads";
-  const fastLongest = fast.longest_stretch_m;
-  const rank = (c) => ["fastest", "calmest", "balanced"].indexOf(c.name);
-  const ordered = [...res.cards].sort((x, y) => rank(x) - rank(y));
-  const calmCard = res.cards.find((c) => hasName(c, "calmest"));
-  const noCalmer = !calmCard || hasName(calmCard, "fastest");
-
-  const cardHtml = (c, idx) => {
-    const mc = MODE_CONFIG[c.name] || MODE_CONFIG.calmest;
-    const names = [c.name, ...(c.also || [])].map((n) => (MODE_CONFIG[n] || {}).label || n).join(" and ");
-    const geo = withLengths(c);
-    const total = geo.reduce((a, g) => a + g.length_m, 0) || 1;
-    const runIds = Array.isArray(c.longest_stretch_segment_ids) ? new Set(c.longest_stretch_segment_ids) : null;
-    const idx0 = runIds && runIds.size ? geo.findIndex((g) => runIds.has(g.id)) : -1;
-    let idx1 = -1;
-    if (idx0 >= 0) geo.forEach((g, i) => { if (runIds.has(g.id)) idx1 = i; });
-    let acc = 0, runL = 0, runW = 0;
-    const bands = geo.map((g, i) => {
-      const w = (g.length_m / total) * 100;
-      if (i === idx0) runL = acc;
-      if (idx0 >= 0 && i >= idx0 && i <= idx1) runW += w;
-      acc += w;
-      const kind = bandKind(g);
-      const inRun = runIds && runIds.has(g.id);
-      const tip = segmentTip(g, i, geo.length) + (inRun ? " \u00b7 part of the longest run" : "");
-      return `<button type="button" class="rb rb-${kind}${inRun ? " in-run" : ""}" style="flex-basis:${w.toFixed(4)}%" data-name="${c.name}" data-seg="${i}" aria-label="${tip}" title="${tip}"></button>`;
-    }).join("");
-    const isFast = hasName(c, "fastest");
-    const delta = Math.round(c.longest_stretch_m - fastLongest);
-    const deltaTxt = isFast ? "" : `(${delta === 0 ? "same as fastest" : `${delta < 0 ? "\u2212" : "+"}${Math.abs(delta)} m vs fastest`})`;
-    const extraMin = (c.time_s - fast.time_s) / 60;
-    const share = c.length_m > 0 ? c.concerning_m / c.length_m : null;
-    const why = [];
-    if (!isFast) why.push(extraMin > 0.05 ? `Adds ${extraMin.toFixed(1)} min` : "Same walk time as fastest");
-    if (!isFast && delta < 0) why.push(`Longest dark stretch ${Math.abs(delta)} m shorter than fastest`);
-    if (!isFast && delta > 0) why.push(`Longest dark stretch ${delta} m longer than fastest`);
-    if (c.unknown_m >= 1) why.push(`${Math.round(c.unknown_m)} m of this route has no condition data, scored pessimistically`);
-    if (c.coverage != null) why.push(`Condition data covers ${Math.round(c.coverage * 100)}% of the fields on this route`);
-    if (isFast) why.push("This is the fastest eligible route; the others are compared against it");
-    return `
-      <article class="rcard${c.name === active ? " sel" : ""}" data-name="${c.name}" style="--accent:${mc.color};--i:${idx}" aria-label="${names} route">
-        <header class="rcard-head">
-          <h3 class="rcard-title">${names}</h3>
-          <button type="button" class="rcard-pick" data-m="${c.name}" aria-pressed="${c.name === active}">${c.name === active ? "Shown on map" : "Show on map"}</button>
-        </header>
-        <p class="rcard-claim muted">${c.claim}</p>
-        <div class="hero">
-          <span class="hero-num">${Math.round(c.longest_stretch_m)}</span><span class="hero-unit">m</span>
-          ${deltaTxt ? `<span class="hero-delta">${deltaTxt}</span>` : ""}
-          <span class="hero-cap">Longest continuous concerning stretch</span>
-        </div>
-        <div class="ribbon-wrap">
-          <div class="ribbon" role="group" aria-label="Journey from start to end, ${geo.length} segments. Use arrow keys to move between segments.">${bands}</div>
-          ${idx0 >= 0 ? `<div class="run-mark" style="left:${runL.toFixed(3)}%;width:${Math.max(runW, 0.6).toFixed(3)}%" aria-hidden="true"></div>
-          <div class="run-label" style="left:${runL.toFixed(3)}%">${Math.round(c.longest_stretch_m)} m</div>` : runIds && !runIds.size ? `<div class="run-none">No concerning stretch on this route</div>` : ""}
-        </div>
-        <div class="ribbon-ends"><span>Start</span><span>End</span></div>
-        <table class="rmetrics">
-          <tr><td>Walk time</td><td>${fmtMin(c.time_s)}</td></tr>
-          <tr><td>Length</td><td>${(c.length_m / 1000).toFixed(2)} km</td></tr>
-          <tr><td>Total concerning</td><td>${Math.round(c.concerning_m)} m \u00b7 ${c.concerning_min.toFixed(1)} min</td></tr>
-          <tr><td>Concerning share of route</td><td>${share == null ? "\u2013" : Math.round(share * 100) + "%"}</td></tr>
-          <tr><td>Max single-segment risk</td><td>${c.max_segment_risk.toFixed(2)}</td></tr>
-          <tr><td>Unknown (no data)</td><td>${Math.round(c.unknown_m)} m</td></tr>
-          <tr><td>Data coverage</td><td>${c.coverage == null ? "\u2013" : Math.round(c.coverage * 100) + "%"}</td></tr>
-        </table>
-        <div class="rp-eval-box why-box">
-          <p class="why-title">Why this route</p>
-          <ul class="why-list">${why.map((t) => `<li>${t}</li>`).join("")}</ul>
-          <div class="why-codes">${c.reason_codes.map((rc) => `<span class="hl-pill">${rc}</span>`).join("")}</div>
-        </div>
-      </article>`;
-  };
+  const safetyPct = cur.length_m > 0 ? Math.max(8, Math.round(((cur.length_m - cur.concerning_m) / cur.length_m) * 100)) : 85;
+  const safetyTier = safetyPct >= 75 ? "High Safety" : safetyPct >= 55 ? "Moderate Safety" : "Low Safety";
+  const safetyColor = safetyPct >= 75 ? "#1E8E3E" : safetyPct >= 55 ? "#F29900" : "#EA4335";
+  const timeDiff = Math.round(cur.time_s - fast.time_s);
+  const distKm = (cur.length_m / 1000).toFixed(1);
+  const travelText = travelProfile === "foot" ? "Walk" : "Drive";
+  const modeTitle = fmtModes(cur);
 
   $("cards").innerHTML = `
     <div class="rp-header">
-      <div>
-        <h2 class="rp-h2">Route comparison</h2>
-        <p class="rp-sub">${distSub}. Departure ${hh(hourVal(), minuteVal())}, simulated conditions.</p>
+      <div class="rp-title-group">
+        <div class="rp-icon-badge" style="background:#E6F4EA;color:#1E8E3E">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+        </div>
+        <div>
+          <h2 class="rp-h2">${modeTitle} &middot; ${travelText}</h2>
+          <p class="rp-sub">Safety analysis for your selected path</p>
+        </div>
       </div>
-      <button class="sec" id="simHazardBtn">Report a hazard on this route</button>
+      <button class="sec" id="simHazardBtn" hidden>Report a hazard on this route</button>
     </div>
-    ${noCalmer ? `<p class="no-calmer">No calmer route fits the time budget. The fastest route is already the calmest option within ${Math.round((+$("detour").value - 1) * 100)}% extra time.</p>` : ""}
-    <div class="rcards">${ordered.map((c, i) => cardHtml(c, i)).join("")}</div>
-    <div class="legend" aria-label="Ribbon legend">
-      <span><i class="lg lg-good"></i>Assessed good (risk at or below ${cfg.tau})</span>
-      <span><i class="lg lg-concerning"></i>Concerning (risk above ${cfg.tau})</span>
-      <span><i class="lg lg-unknown"></i>No data (dashed, counted as concerning)</span>
-      <span><i class="lg lg-run"></i>Longest run</span>
+
+    <div class="rp-stats-row">
+      <div class="rp-stat-card">
+        <div class="rp-stat-top">
+          <div class="rp-stat-ico" style="background:#E8F0FE;color:#1A73E8">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
+          </div>
+          <span class="rp-stat-lbl">Travel Time</span>
+        </div>
+        <span class="rp-stat-val">${fmtMin(cur.time_s)}</span>
+        <span class="rp-stat-sub" style="color:${timeDiff > 0 ? "#F29900" : "#1E8E3E"}">${timeDiff > 0 ? `+${timeDiff}s vs fastest` : "Shortest possible"}</span>
+      </div>
+
+      <div class="rp-stat-card">
+        <div class="rp-stat-top">
+          <div class="rp-stat-ico" style="background:${safetyColor}18;color:${safetyColor}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+          </div>
+          <span class="rp-stat-lbl">Safety Score</span>
+        </div>
+        <span class="rp-stat-val">${safetyPct}%</span>
+        <div class="rp-score-bar-track">
+          <div class="rp-score-bar-fill" style="width:${safetyPct}%"></div>
+        </div>
+        <span class="rp-stat-sub" style="color:${safetyColor}">${safetyTier}</span>
+      </div>
+
+      <div class="rp-stat-card">
+        <div class="rp-stat-top">
+          <div class="rp-stat-ico" style="background:#F0EBE2;color:#6B6259">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M21 3L3 10.53v.98l6.84 2.65L12.48 21h.98L21 3z"/></svg>
+          </div>
+          <span class="rp-stat-lbl">Est. Distance</span>
+        </div>
+        <span class="rp-stat-val">${distKm} km</span>
+        <span class="rp-stat-sub" style="color:#8A8275">Actual road distance</span>
+      </div>
     </div>
-    <p class="map-key">On the map the selected route is coloured by each segment's risk; other routes are thin lines.</p>
+
+    <div class="rp-level-wrap">
+      <div class="rp-level-head">
+        <span class="rp-level-lbl">Route Safety Level</span>
+        <span class="rp-level-pct" style="color:#1E8E3E">${safetyPct}% safe</span>
+      </div>
+      <div class="rp-level-track">
+        <div class="rp-level-fill" style="width:${safetyPct}%"></div>
+      </div>
+      <div class="rp-level-ticks">
+        <span style="color:#EA4335">Low</span>
+        <span style="color:#F29900">Moderate</span>
+        <span style="color:#1E8E3E">High</span>
+      </div>
+    </div>
   `;
 
-  document.querySelectorAll(".rcard-pick").forEach((b) => {
-    b.onclick = () => { sel = b.dataset.m; renderCards(); };
-  });
-  wireRibbons(res);
-  if (!ribbonAnimated) {
-    ribbonAnimated = true;
-    $("cards").classList.add("wipe");
-    setTimeout(() => $("cards").classList.remove("wipe"), 1600);
+  if ($("simHazardBtn")) {
+    $("simHazardBtn").onclick = () => {
+      const seg = cur.geometry.find((g) => g.conc) || cur.geometry[0];
+      if (seg) openDrawer(seg.id, true);
+    };
   }
-
-  $("simHazardBtn").onclick = () => {
-    const seg = cur.geometry.find((g) => g.conc) || cur.geometry[0];
-    if (seg) openDrawer(seg.id, true);
-  };
 
   const order = [...res.cards].sort((a, b) => (a.name === active) - (b.name === active));
   const boundsPts = [];
@@ -709,7 +694,7 @@ $("mode-drive").onclick = () => {
   travelProfile = "driving";
   $("mode-drive").classList.add("active");
   $("mode-walk").classList.remove("active");
-  $("profileLabel").textContent = "Driving routes";
+  if ($("profileLabel")) $("profileLabel").textContent = "Driving routes";
   if (lastRes) renderCards();
 };
 
@@ -717,7 +702,7 @@ $("mode-walk").onclick = () => {
   travelProfile = "foot";
   $("mode-walk").classList.add("active");
   $("mode-drive").classList.remove("active");
-  $("profileLabel").textContent = "Walking routes";
+  if ($("profileLabel")) $("profileLabel").textContent = "Walking routes";
   if (lastRes) renderCards();
 };
 
@@ -762,14 +747,14 @@ $("reset").onclick = () => {
 
 (async () => {
   cfg = await api("/api/config");
-  $("params").textContent = `TAU=${cfg.tau} · R=${cfg.r_m} m · Δ=${cfg.delta_m} m`;
-  $("paramsLine").textContent = `TAU ${cfg.tau} \u00b7 R ${cfg.r_m} m \u00b7 \u0394 ${cfg.delta_m} m \u00b7 no data counts as concerning`;
+  if ($("params")) $("params").textContent = `TAU=${cfg.tau} · R=${cfg.r_m} m · Δ=${cfg.delta_m} m`;
+  if ($("paramsLine")) $("paramsLine").textContent = `TAU ${cfg.tau} \u00b7 R ${cfg.r_m} m \u00b7 \u0394 ${cfg.delta_m} m \u00b7 no data counts as concerning`;
   await loadPlaces();
   setupAutocomplete($("fromInput"), $("fromDropdown"), $("fromList"), true);
   setupAutocomplete($("toInput"), $("toDropdown"), $("toList"), false);
   renderRecent();
 
-  $("profileLabel").textContent = "Driving routes";
+  if ($("profileLabel")) $("profileLabel").textContent = "Driving routes";
   placing = "source";
   syncMarkers();
   syncUIState();

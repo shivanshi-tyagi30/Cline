@@ -8,8 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" />
-  <link rel="stylesheet" href="/style.css?v=13" />
-  <link rel="stylesheet" href="/night.css?v=4" />
+  <link rel="stylesheet" href="/style.css?v=16" />
+  <link rel="stylesheet" href="/night.css?v=11" />
 </head>
 <body>
 
@@ -80,13 +80,7 @@
         </div>
         <div>
           <h1 class="brand-h1">Dusk</h1>
-          <p class="brand-sub">Night walking routes that keep dark stretches short</p>
-          <p class="brand-mode" id="profileLabel">Driving routes</p>
-          <div class="badges">
-            <span class="badge">Simulated conditions</span>
-            <span class="badge">Departure-time snapshot</span>
-          </div>
-          <p class="params-line" id="paramsLine"></p>
+          <p class="brand-sub">Safety-Aware Navigation</p>
         </div>
       </div>
 
@@ -100,7 +94,7 @@
             <div class="step-bar-seg" id="sbar2"></div>
             <div class="step-bar-seg" id="sbar3"></div>
           </div>
-          <p class="step-label" id="stepCaption">Search a place or tap the map to set where you start and where you are going.</p>
+          <p class="step-label" id="stepCaption"><strong>Step 1</strong> of 3 &mdash; Set your starting point</p>
         </div>
 
         <!-- Connected FROM / TO Box with Live Autocomplete -->
@@ -247,7 +241,7 @@
   <div id="drawer" class="inspector-modal" hidden></div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="/map.js?v=14"></script>
+  <script src="/map.js?v=17"></script>
   <script src="/report.js?v=10"></script>
 </body>
 </html>
