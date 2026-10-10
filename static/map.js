@@ -4,7 +4,7 @@ const MODE_CONFIG = {
   fastest: {
     id: "fastest",
     label: "Fastest",
-    color: "#8FA3C8",
+    color: "#3B5BDB",
     bg: "#e8e7f8",
     textColor: "#171b5e",
     icon: (active) => `<svg width="16" height="16" viewBox="0 0 24 24" fill="${active ? "#fff" : "#171b5e"}"><path d="M13 2.05v2.02c3.95.49 7 3.85 7 7.93 0 3.21-1.81 6-4.72 7.28L13 17v5l5-3.08C21.49 16.89 23 13.62 23 12c0-5.18-3.95-9.45-10-9.95zM11 2.05C4.95 2.55 1 6.82 1 12c0 1.62 1.51 4.89 5 6.92L11 22v-5l-2.28-1.72C6.81 14 5 11.21 5 8c0-4.08 3.05-7.44 7-7.95v2.02z"/></svg>`
@@ -12,7 +12,7 @@ const MODE_CONFIG = {
   balanced: {
     id: "balanced",
     label: "Balanced",
-    color: "#B6A6E0",
+    color: "#7048E8",
     bg: "#FEF3DC",
     textColor: "#8A5800",
     icon: (active) => `<svg width="16" height="16" viewBox="0 0 24 24" fill="${active ? "#fff" : "#8A5800"}"><path d="M12 3L1 9l4 2.18V15c0 3.31 3.13 5 7 5s7-1.69 7-5v-3.82L21 9 12 3zm2.45 11.19c-.47.44-1.3.81-2.45.81s-1.98-.37-2.45-.81L8.5 13h7l-1.05 1.19zM17 12.5l-5-2.73-5 2.73v-.73l5-2.73 5 2.73v.73z"/></svg>`
@@ -20,7 +20,7 @@ const MODE_CONFIG = {
   calmest: {
     id: "calmest",
     label: "Calmest",
-    color: "#E7EBF4",
+    color: "#0C8599",
     bg: "#E6F4EA",
     textColor: "#145A2B",
     icon: (active) => `<svg width="16" height="16" viewBox="0 0 24 24" fill="${active ? "#fff" : "#145A2B"}"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>`
@@ -64,7 +64,7 @@ async function searchPlaces(q) {
 
 /* Initialize Leaflet Map */
 const map = L.map("map", { zoomControl: true }).setView([26.1895, 91.6965], 15);
-L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
   maxZoom: 20
 }).addTo(map);
@@ -82,7 +82,7 @@ let travelProfile = "driving";
 const baseLayer = L.layerGroup().addTo(map);
 const routeLayer = L.layerGroup().addTo(map);
 
-const CSS_FALLBACK = { "--lit": "#F2B45C", "--dim": "#5E6B85", "--unlit": "#1E2333", "--unknown": "#8A919E", "--closed": "#C8CDD8", "--focus": "#9CC2FF" };
+const CSS_FALLBACK = { "--lit": "#F0A830", "--dim": "#8E9AB5", "--unlit": "#27304D", "--unknown": "#9AA1AE", "--closed": "#6B7280", "--focus": "#3B5BDB" };
 const cssVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || CSS_FALLBACK[name] || "#888";
 
 function riskColor(r, st) {
