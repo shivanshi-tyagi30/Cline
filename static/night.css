@@ -10,13 +10,13 @@
   --text-3: #3F4A68;
   --accent: #3B5BDB;
   --accent-ink: #FFFFFF;
-  --lit: #F0A830;
+  --lit: #1E8E3E;
   --lit-ink: #3A2600;
   --hero: #7A4300;
-  --dim: #8E9AB5;
-  --unlit: #27304D;
-  --unknown: #9AA1AE;
-  --closed: #6B7280;
+  --dim: #F29900;
+  --unlit: #D93025;
+  --unknown: #80868B;
+  --closed: #3C4043;
   --focus: #3B5BDB;
   --run: #18203A;
   --serif: "Newsreader", Georgia, serif;
@@ -82,7 +82,7 @@ body, button, input, select, textarea { font-family: var(--sans); }
 .brand-sub { font-size: 13.5px; line-height: 1.45; margin-top: 2px; }
 .brand-pin-box { background: var(--accent) !important; border: 1px solid var(--accent); }
 .brand-pin-box svg { stroke: #FFFFFF; }
-.brand-pin-box circle { fill: var(--lit); }
+.brand-pin-box circle { fill: #F0A830; }
 .brand-mode, .step-bars { display: none !important; }
 .step-label { font-size: 15px; line-height: 1.55; }
 .ping-core, .ping-ring { background: var(--text-2) !important; }

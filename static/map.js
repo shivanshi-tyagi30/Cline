@@ -64,9 +64,9 @@ async function searchPlaces(q) {
 
 /* Initialize Leaflet Map */
 const map = L.map("map", { zoomControl: true }).setView([26.1895, 91.6965], 15);
-L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-  maxZoom: 20
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  maxZoom: 19
 }).addTo(map);
 
 let cfg = {};
@@ -82,7 +82,7 @@ let travelProfile = "driving";
 const baseLayer = L.layerGroup().addTo(map);
 const routeLayer = L.layerGroup().addTo(map);
 
-const CSS_FALLBACK = { "--lit": "#F0A830", "--dim": "#8E9AB5", "--unlit": "#27304D", "--unknown": "#9AA1AE", "--closed": "#6B7280", "--focus": "#3B5BDB" };
+const CSS_FALLBACK = { "--lit": "#1E8E3E", "--dim": "#F29900", "--unlit": "#D93025", "--unknown": "#80868B", "--closed": "#3C4043", "--focus": "#3B5BDB" };
 const cssVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || CSS_FALLBACK[name] || "#888";
 
 function riskColor(r, st) {
