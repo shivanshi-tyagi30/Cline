@@ -55,7 +55,7 @@ body, button, input, select, textarea { font-family: var(--sans); }
 }
 #route-panel { backdrop-filter: none; }
 
-.od-card, .time-budget-card, .rp-stat-card, .rp-eval-box, .route-mode-pill, .chip,
+.od-card, .time-budget-card, .rp-stat-card, .rp-eval-box, .chip,
 .recent-btn, .ac-item, .od-input, .tb-time-input, textarea, select, .hl-pill {
   background: var(--raised) !important;
   color: var(--text) !important;

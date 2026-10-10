@@ -491,9 +491,10 @@ function renderCards() {
     return;
   }
 
+  const ALL_MODES = ["calmest", "balanced", "fastest"];
+  if (!ALL_MODES.includes(sel)) sel = "calmest";
   const selCard = res.cards.find((c) => hasName(c, sel)) || res.cards.find((c) => hasName(c, "calmest")) || res.cards.find((c) => hasName(c, "fastest")) || res.cards[0];
   const active = selCard.name;
-  sel = active;
   syncUIState();
 
   const fmtModes = (c) => {
@@ -507,12 +508,11 @@ function renderCards() {
     return labels.join(" & ");
   };
 
-  $("modePillsRow").innerHTML = res.cards.map((c) => {
-    const m = MODE_CONFIG[c.name] || MODE_CONFIG.calmest;
-    const isSel = c.name === active;
-    const title = fmtModes(c);
-    return `<button class="route-mode-pill" data-m="${c.name}" style="border-color:${isSel ? m.color : "#DDD5C8"};background:${isSel ? m.color : "#fff"};color:${isSel ? "#fff" : m.textColor};box-shadow:${isSel ? `0 3px 10px ${m.color}40` : "none"}">
-      ${m.icon(isSel)} <span>${title}</span>
+  $("modePillsRow").innerHTML = ALL_MODES.map((mKey) => {
+    const m = MODE_CONFIG[mKey];
+    const isSel = mKey === sel;
+    return `<button class="route-mode-pill" data-m="${mKey}" style="border-color:${isSel ? m.color : "#DDD5C8"};background:${isSel ? m.color : "#fff"};color:${isSel ? "#fff" : m.textColor};box-shadow:${isSel ? `0 3px 10px ${m.color}40` : "none"}">
+      ${m.icon(isSel)} <span>${m.label}</span>
     </button>`;
   }).join("");
 
@@ -525,7 +525,7 @@ function renderCards() {
 
   const cur = selCard;
   const fast = res.cards.find((c) => hasName(c, "fastest")) || selCard;
-  const m = MODE_CONFIG[cur.name] || MODE_CONFIG.calmest;
+  const m = MODE_CONFIG[sel] || MODE_CONFIG.calmest;
 
   const safetyPct = cur.length_m > 0 ? Math.max(8, Math.round(((cur.length_m - cur.concerning_m) / cur.length_m) * 100)) : 85;
   const safetyTier = safetyPct >= 75 ? "High Safety" : safetyPct >= 55 ? "Moderate Safety" : "Low Safety";
