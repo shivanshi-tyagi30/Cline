@@ -7,6 +7,10 @@ stretch* within a time budget.
 - **Street conditions are synthetic:** every baseline condition value comes from a seeded generator.
 - **No safety claim:** nothing here establishes real night-time safety.
 
+---
+## Deployed Website : https://fear-free-night-navigator.onrender.com/
+---
+
 **Docs:** [Assumptions & acceptance checks](docs/ASSUMPTIONS.md) · [Decisions log](docs/DECISIONS.md) ·
 [Cline build log](docs/CLINE_LOG.md) · [How Cline was used](#how-cline-was-used)
 
@@ -100,8 +104,6 @@ pytest -q
 - **Demo gate:** `python scripts/demo_gate.py`
   - Prints concerning share by hour and route-improvement counts, and rewrites `data/demo_pairs.json`.
 
----
-## Deployed Website : https://fear-free-night-navigator.onrender.com/
 ---
 
 ## Optional features
