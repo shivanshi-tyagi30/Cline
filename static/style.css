@@ -423,17 +423,13 @@ html, body {
   width: 20px;
 }
 
-.dot-origin {
+.dot-origin,
+.dot-origin.empty {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: var(--navy-main);
-  border: 2px solid var(--navy-main);
-}
-
-.dot-origin.empty {
-  background: #ffffff;
-  border-color: #9ca0c7;
+  background: #1A73E8;
+  border: 2px solid #1A73E8;
 }
 
 .rail-line {
@@ -444,17 +440,13 @@ html, body {
   margin-top: 4px;
 }
 
-.sq-dest {
+.sq-dest,
+.sq-dest.empty {
   width: 12px;
   height: 12px;
   border-radius: 3px;
-  background: var(--color-danger);
-  border: 2px solid var(--color-danger);
-}
-
-.sq-dest.empty {
-  background: #ffffff;
-  border-color: #9ca0c7;
+  background: #EA4335;
+  border: 2px solid #EA4335;
 }
 
 .od-input-col {
